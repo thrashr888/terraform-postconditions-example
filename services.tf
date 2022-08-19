@@ -1,3 +1,14 @@
+
+data "http" "test_address" {
+  url = "https://checkip.amazonaws.com"
+  lifecycle {
+    postcondition {
+      condition     = self.status_code == 200
+      error_message = "Failed to get local IP address"
+    }
+  }
+}
+
 # Example - a new health check API data source
 # https://docs.aws.amazon.com/health/latest/ug/health-api.html
 # https://status.aws.amazon.com/currentevents.json
@@ -67,3 +78,19 @@ data "http" "azure-health" {
 #     }
 #   }
 # }
+
+# consul connection
+variable "consul_ip" {
+  type    = string
+  default = "127.0.0.1"
+}
+data "http" "consul_health" {
+  url = join("", ["http://", var.consul_ip, "/v1/health/service/consul"])
+  lifecycle {
+    postcondition {
+
+      condition     = contains([201, 200, 204, 503], self.status_code)
+      error_message = "Consul service is not healthy"
+    }
+  }
+}

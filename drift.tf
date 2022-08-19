@@ -14,3 +14,17 @@ resource "aws_s3_bucket_acl" "example" {
     }
   }
 }
+
+
+data "aws_vpc" "vpc_id" {
+  filter {
+    name   = "tag:Name"
+    values = ["VPC"]
+  }
+  lifecycle {
+    postcondition {
+      condition     = self.enable_dns_support == true
+      error_message = "The selected VPC must have DNS support enabled."
+    }
+  }
+}
