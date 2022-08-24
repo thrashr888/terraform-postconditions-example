@@ -22,64 +22,49 @@ resource "aws_api_gateway_client_certificate" "demo" {
 # }
 
 
-resource "azurerm_key_vault" "kv" {
-  name                = local.kv_name
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = var.location
-  sku_name            = "standard"
-  tenant_id           = data.azurerm_client_config.current.tenant_id
+resource "tls_private_key" "example" {
+  algorithm = "ECDSA"
+}
 
-  soft_delete_retention_days = 7
-  purge_protection_enabled   = false
+# resource "tls_self_signed_cert" "example" {
+#   private_key_pem = file("private_key.pem")
 
-  # Do not use Azure RBAC, because Application Gateway does not support it properly:
-  # https://docs.microsoft.com/en-us/azure/application-gateway/key-vault-certs#key-vault-azure-role-based-access-control-permission-model
-  enable_rbac_authorization = false
+#   subject {
+#     common_name  = "example.com"
+#     organization = "ACME Examples, Inc"
+#   }
 
-  enabled_for_deployment          = true
-  enabled_for_disk_encryption     = true
-  enabled_for_template_deployment = true
+#   validity_period_hours = 4380
+#   early_renewal_hours   = 336
 
-  tags = {
-    environment = var.env
+#   allowed_uses = [
+#     "key_encipherment",
+#     "digital_signature",
+#     "server_auth",
+#   ]
+
+#   lifecycle {
+#     postcondition {
+#       condition     = !self.ready_for_renewal
+#       error_message = "Certificate will expire in less than two weeks."
+#     }
+#   }
+# }
+
+
+provider "tls" {
+  proxy {
+    url = "https://corporate.proxy.service"
   }
 }
 
-# Key Vault check: ETL license
-# - Secret check returns "404 - Not Found", so the following postcondition check will not kick in
-data "azurerm_key_vault_secret" "etl_license_secret" {
-  name         = local.kv_secret_name_etl_license
-  key_vault_id = azurerm_key_vault.kv.id
-  lifecycle {
-    postcondition {
-      condition     = self.id != null
-      error_message = "ETL license must be uploaded to key vault '${azurerm_key_vault.kv.name}' as '${local.kv_secret_name_etl_license}'"
-    }
-  }
-  depends_on = [
-    azurerm_key_vault.kv,
-    azurerm_key_vault_access_policy.kvaccess_deployer
-  ]
-}
+# data "tls_certificate" "example-test" {
+#   url = "https://example.com"
 
-# Key Vault check: PEM certificate for HTTPS in AppGW
-# - Certificate check does not return "404 - Not Found", so using a post condition check with a proper error message
-data "azurerm_key_vault_certificate" "frontend_cert" {
-  name         = local.kv_cert_name_frontend
-  key_vault_id = azurerm_key_vault.kv.id
-  lifecycle {
-    postcondition {
-      condition     = self.id != null
-      error_message = <<EOM
-        PEM frontend certificate must be uploaded to key vault '${azurerm_key_vault.kv.name}' as '${local.kv_cert_name_frontend}', e.g.:
-        az keyvault certificate import --vault-name "${azurerm_key_vault.kv.name}" -n "${local.kv_cert_name_frontend}" -f "/path/to/${var.project_name}-${var.env}.pfx" -o none
-        Make sure, the ETL license is uploaded as well, e.g.:
-        az keyvault secret set --vault-name "${azurerm_key_vault.kv.name}" -n  "${local.kv_secret_name_etl_license}" -f "/path/to/${local.kv_secret_name_etl_license}.lic" -o none
-      EOM
-    }
-  }
-  depends_on = [
-    azurerm_key_vault.kv,
-    azurerm_key_vault_access_policy.kvaccess_deployer
-  ]
-}
+#   lifecycle {
+#     postcondition {
+#       condition     = !self.ready_for_renewal
+#       error_message = "Certificate will expire in less than two weeks."
+#     }
+#   }
+# }

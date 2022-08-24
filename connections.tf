@@ -33,7 +33,7 @@ data "dns_a_record_set" "tfc-internal" {
   lifecycle {
     postcondition {
       condition     = length(self.addrs) > 0
-      error_message = "hashicorp.com DNS record does not contain any  addresses"
+      error_message = "hashicorp.com DNS record does not contain any addresses"
     }
   }
 }
