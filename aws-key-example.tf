@@ -58,12 +58,12 @@ resource "vault_pki_secret_backend_cert" "web2" {
   common_name = "es-master-1.company.internal"
   ttl         = "1h"
 
-  lifecycle {
-    postcondition {
-      condition     = !self.renew_pending
-      error_message = "Certificate requires renewal"
-    }
-  }
+  # lifecycle {
+  #   postcondition {
+  #     condition     = !self.renew_pending
+  #     error_message = "Certificate requires renewal"
+  #   }
+  # }
 }
 
 resource "tls_self_signed_cert" "web" {
