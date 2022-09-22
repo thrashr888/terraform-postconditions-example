@@ -52,7 +52,7 @@ resource "aws_key_pair" "web" {
   }
 }
 
-resource "vault_pki_secret_backend_cert" "web" {
+resource "vault_pki_secret_backend_cert" "web2" {
   backend = "intermediate-ca"
   name    = "admin-role"
   common_name = "es-master-1.company.internal"
