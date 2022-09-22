@@ -7,25 +7,25 @@
 # | tls_self_signed_cert.web | Failed | Certificate will expire in less than 12 hours. |
 # +--------------------------+--------+------------------------------------------------+
 
-data "aws_ami" "ubuntu" {
-  most_recent = true
-  filter {
-    name   = "name"
-    values = ["ubuntu/images/hvm-ssd/ubuntu-focal-20.04-amd64-server-*"]
-  }
-  filter {
-    name   = "virtualization-type"
-    values = ["hvm"]
-  }
-  owners = ["099720109477"] # Canonical
+# data "aws_ami" "ubuntu" {
+#   most_recent = true
+#   filter {
+#     name   = "name"
+#     values = ["ubuntu/images/hvm-ssd/ubuntu-focal-20.04-amd64-server-*"]
+#   }
+#   filter {
+#     name   = "virtualization-type"
+#     values = ["hvm"]
+#   }
+#   owners = ["099720109477"] # Canonical
 
-  lifecycle {
-    postcondition {
-      condition     = self.state == "available"
-      error_message = "The AMI is not available."
-    }
-  }
-}
+#   lifecycle {
+#     postcondition {
+#       condition     = self.state == "available"
+#       error_message = "The AMI is not available."
+#     }
+#   }
+# }
 
 resource "aws_instance" "web" {
   ami           = data.aws_ami.ubuntu.id

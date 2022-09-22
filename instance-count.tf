@@ -23,6 +23,13 @@ data "aws_ami" "ubuntu" {
   }
 
   owners = ["099720109477"] # Canonical
+
+  lifecycle {
+    postcondition {
+      condition     = self.state == "available"
+      error_message = "The AMI is not available."
+    }
+  }
 }
 
 resource "aws_instance" "instances" {
